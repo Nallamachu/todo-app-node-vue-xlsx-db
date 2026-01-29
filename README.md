@@ -6,7 +6,7 @@ npm install
 npm run dev
 ```
 
-## Application will be accessible with below url
+Application will be accessible with below url
 
 ```
 http://localhost:5173
