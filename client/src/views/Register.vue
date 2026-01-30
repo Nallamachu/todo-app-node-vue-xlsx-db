@@ -27,6 +27,9 @@
                 density="compact"
                 hide-details
               />
+              <v-alert v-if="form.email && !isEmailValid" type="warning" dense>
+                Enter a valid email address.
+              </v-alert>
               <v-text-field
                 color="primary"
                 class="mt-2"
@@ -78,7 +81,7 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted, watch } from 'vue'
+import { ref, onUnmounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
@@ -92,6 +95,13 @@ const errorMsg = ref('')
 const showError = ref(false)
 let errorTimer = null
 
+// expose email validation to template
+const isEmailValid = emailValid
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const emailValid = computed(() => emailRegex.test(form.value.email || ''))
+
+
 const clearError = () => {
   showError.value = false
   errorMsg.value = ''
@@ -103,6 +113,14 @@ const clearError = () => {
 
 const register = async () => {
   clearError()
+  if (!emailValid.value) {
+    errorMsg.value = 'Please enter a valid email address.'
+    showError.value = true
+    if (errorTimer) clearTimeout(errorTimer)
+    errorTimer = setTimeout(() => clearError(), 3000)
+    return
+  }
+
   try {
     await authStore.register(form.value)
     router.push('/login')

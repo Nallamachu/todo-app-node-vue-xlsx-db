@@ -26,7 +26,7 @@ function initUserExcel(username) {
   
   // Todos sheet
   const todosWs = XLSX.utils.aoa_to_sheet([
-    ['id', 'title', 'description', 'completed', 'created_at', 'updated_at']
+    ['id', 'title', 'description', 'target_date', 'completed', 'created_at', 'updated_at']
   ]);
   XLSX.utils.book_append_sheet(wb, todosWs, 'todos');
   
@@ -36,12 +36,17 @@ function initUserExcel(username) {
 async function findUser(username, passwordHash) {
   const filePath = getUserExcelPath(username);
   if (!fs.existsSync(filePath)) return null;
-  
+
   const wb = XLSX.readFile(filePath);
   const usersSheet = wb.Sheets['users'];
   const usersData = XLSX.utils.sheet_to_json(usersSheet);
-  
-  return usersData.find(u => u.username === username && u.password_hash === passwordHash);
+
+  if (passwordHash) {
+    return usersData.find(u => u.username === username && u.password_hash === passwordHash);
+  }
+
+  // If no passwordHash provided, return by username only (used for existence checks)
+  return usersData.find(u => u.username === username);
 }
 
 async function createUser(username, passwordHash, email) {
@@ -60,7 +65,9 @@ async function createUser(username, passwordHash, email) {
   });
   
   const newUsersSheet = XLSX.utils.json_to_sheet(usersData);
-  XLSX.utils.book_append_sheet(wb, newUsersSheet, 'users');
+  // Replace the users sheet to avoid duplicate sheets with same name
+  wb.Sheets['users'] = newUsersSheet;
+  if (!wb.SheetNames.includes('users')) wb.SheetNames.push('users');
   XLSX.writeFile(wb, filePath);
   
   return true;
@@ -92,7 +99,8 @@ async function addTodo(username, todo) {
   
   todos.push(newTodo);
   const newTodosSheet = XLSX.utils.json_to_sheet(todos);
-  XLSX.utils.book_append_sheet(wb, newTodosSheet, 'todos');
+  wb.Sheets['todos'] = newTodosSheet;
+  if (!wb.SheetNames.includes('todos')) wb.SheetNames.push('todos');
   XLSX.writeFile(wb, filePath);
   
   return newTodo;
@@ -109,7 +117,8 @@ async function updateTodo(username, id, updates) {
   
   todos[index] = { ...todos[index], ...updates, updated_at: new Date().toISOString() };
   const newTodosSheet = XLSX.utils.json_to_sheet(todos);
-  XLSX.utils.book_append_sheet(wb, newTodosSheet, 'todos');
+  wb.Sheets['todos'] = newTodosSheet;
+  if (!wb.SheetNames.includes('todos')) wb.SheetNames.push('todos');
   XLSX.writeFile(wb, filePath);
   
   return todos[index];
@@ -123,7 +132,8 @@ async function deleteTodo(username, id) {
   
   const filteredTodos = todos.filter(t => t.id !== id);
   const newTodosSheet = XLSX.utils.json_to_sheet(filteredTodos);
-  XLSX.utils.book_append_sheet(wb, newTodosSheet, 'todos');
+  wb.Sheets['todos'] = newTodosSheet;
+  if (!wb.SheetNames.includes('todos')) wb.SheetNames.push('todos');
   XLSX.writeFile(wb, filePath);
   
   return true;

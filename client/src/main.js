@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createVuetify } from 'vuetify'
+import 'vuetify/styles'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createPinia } from 'pinia'
@@ -9,7 +10,10 @@ import './styles.css'
 
 const vuetify = createVuetify({
   components,
-  directives
+  directives,
+  icons: {
+    defaultSet: 'mdi'
+  }
 })
 
 const app = createApp(App)

@@ -15,4 +15,16 @@ const router = createRouter({
   routes
 })
 
+// Simple auth guard using token in localStorage
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  if ((to.path === '/dashboard' || to.meta.requiresAuth) && !token) {
+    return next('/login')
+  }
+  if ((to.path === '/login' || to.path === '/register') && token) {
+    return next('/dashboard')
+  }
+  next()
+})
+
 export default router

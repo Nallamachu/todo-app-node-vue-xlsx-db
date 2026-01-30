@@ -4,7 +4,7 @@ import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('token'))
-  const user = ref(null)
+  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
 
   axios.defaults.baseURL = '/api'
 
@@ -19,6 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = response.data.token
     user.value = response.data.user
     localStorage.setItem('token', token.value)
+    localStorage.setItem('user', JSON.stringify(user.value))
     setAuthHeader()
   }
 
@@ -27,6 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = response.data.token
     user.value = response.data.user
     localStorage.setItem('token', token.value)
+    localStorage.setItem('user', JSON.stringify(user.value))
     setAuthHeader()
   }
 
@@ -34,6 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     user.value = null
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
     delete axios.defaults.headers.common['Authorization']
   }
 
